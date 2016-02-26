@@ -1,0 +1,61 @@
+Shiny Diamonds
+========================================================
+author: Lakshmy Priya
+date: February 26 2016
+
+Introduction
+========================================================
+
+Buying diamonds is a costly affair and requires a lot of understanding of the different facets that impact it's price. 
+
+This application is designed to help users input their preferred carat size, diamond cut and color of the stone to explore the average cost of a diamond that meets their needs. 
+
+You can try the application at https://lakshmyp.shinyapps.io/diam_app/
+
+The full code for the ui and the server is located at https://github.com/lakshmyp/diamond_app
+
+Data & Calculations
+========================================================
+The diamonds data is sourced from the ggplot2 library and contains the prices and other attributes of almost 54,000 diamonds. 
+
+For the sake of this application, we are looking at carat size (weight of the diamond), quality of the cut, and color of the diamond. The average price is in US dollars. 
+
+The inputs from the user are a range of carat sizes, multiple inputs for color and cut. The average price corresponding to that subset of diamonds with those features is calculated and returned. 
+
+A scatterplot is also displayed to show the data corresponding to the selections. 
+
+Code chunk for the calculation
+========================================================
+
+
+```{r, eval=FALSE, results='hide'}
+library(ggplot2)
+data("diamonds")
+dsmall <- diamonds[, c("carat","cut","color","clarity","price") ]
+
+shinyServer(
+ function(input,output){
+   data <- reactive({
+     dsub <- subset(dsmall, carat >= input$caratmin & carat <= input$caratmax &
+                      (color %in% input$color) & (cut %in% input$cut) )
+     return(dsub)
+     })  
+   output$price <- renderText({
+     avgpr <- round(mean(data()$price),2)
+     isolate(paste("US$ ",avgpr))
+     })
+ })
+
+```
+
+Plot of a random subset of the Diamonds data
+========================================================
+
+```{r, echo=FALSE}
+library(ggplot2)
+data("diamonds")
+set.seed(1234)
+dsmall <- diamonds[sample(nrow(diamonds), 1000), c("carat","cut","color","clarity","price") ]
+p <- ggplot(data=dsmall, aes(x=carat, y=price)) +  geom_point(aes(color = color))
+print(p)
+```
